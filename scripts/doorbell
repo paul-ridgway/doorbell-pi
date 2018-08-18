@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e
+
+#Ensure in scripts directory
+cd $( dirname "${BASH_SOURCE[0]}" )/..
+
+source bin/activate
+
+./bin/python -m doorbell

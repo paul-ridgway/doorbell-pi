@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+#Ensure in scripts directory
+cd $( dirname "${BASH_SOURCE[0]}" )/..
+
+echo "Stopping service..."
+RESULT=$(ssh doorbell-pi "supervisorctl stop doorbell-pi")
+if [[ $RESULT = *"ERROR"* ]]; then
+    echo "Error stopping service! - $RESULT"
+    exit -1
+fi
+
+echo "Copying files..."
+rsync -ahz --delete --progress --exclude=.idea . doorbell-pi:/srv/doorbell-pi
+
+echo "Starting service..."
+RESULT=$(ssh doorbell-pi "supervisorctl start doorbell-pi")
+if [[ $RESULT = *"ERROR"* ]]; then
+    echo "Error stopping service! - $RESULT"
+    exit -1
+fi
+
+exit 0
