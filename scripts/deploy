@@ -24,6 +24,9 @@ rsync -ah --progress --delete --exclude-from="$(git -C . ls-files --exclude-stan
 echo "Installing requirements..."
 ssh $HOST "cd /srv/doorbell-pi && source ~/.venv/doorbell-pi/bin/activate && pip install -r requirements.txt"
 
+echo "Copying config files back"
+ssh $HOST "cd /srv/doorbell-pi && cp -Rvf ../config/* ."
+
 echo "Starting service..."
 RESULT=$(ssh $HOST "supervisorctl start doorbell-pi")
 if [[ $RESULT = *"ERROR"* ]]; then

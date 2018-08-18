@@ -1,2 +1,4 @@
 RPi.GPIO==0.6.3
 GPIOSimulator==0.1
+requests
+pyyaml
