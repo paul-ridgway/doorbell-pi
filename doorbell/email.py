@@ -16,7 +16,7 @@ class Email:
                 raise KeyError("mailgun_domain_name is missing from email.yml")
 
     def send(self, sender, to, subject, body, html_body=None):
-        logging.info("send, sender = %s, to = %s, subject = %s, body = %s", sender, to, subject, body)
+        logging.info("Email#send, sender = %s, to = %s, subject = %s, body = %s", sender, to, subject, body)
 
         if self.settings is None:
             logging.warning("Skipping send as email settings (email.yml) are missing")
@@ -40,4 +40,4 @@ class Email:
 
         response = requests.post(url, auth=auth, data=data)
         response.raise_for_status()
-        logging.info("Send completed")
+        logging.info("Email#send - completed")

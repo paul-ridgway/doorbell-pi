@@ -1,5 +1,6 @@
 from doorbell.OSCheck import ispi
 from doorbell.email import Email
+from doorbell.sms import Sms
 import logging
 import time
 import threading
@@ -17,21 +18,22 @@ class Doorbell:
 
     def __init__(self):
         self.email = Email()
+        self.sms = Sms()
 
     def run(self):
         L.info("run")
 
-        recipients = ['paul@ridgway.io', 'amanda@ridgway.io']
+        email_recipients = ['paul@ridgway.io', 'amanda@ridgway.io']
+        sms_recipients = ['+447507400113', '+447846709005']
 
         if not ispi():
             L.info("launching emulator")
             GPIO.init()
-            recipients = ['paul@ridgway.io']
 
         if not "doorbell" in socket.gethostname():
-            L.info("Stubbing email contacts for non-prod host: %s", socket.gethostname())
-            recipients = ['paul@ridgway.io']
-
+            L.info("Stubbing email/SMS contacts for non-prod host: %s", socket.gethostname())
+            email_recipients = ['paul@ridgway.io']
+            sms_recipients = ['+447507400113']
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(4, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
@@ -51,7 +53,9 @@ class Doorbell:
                 high = time.time()
                 GPIO.output(14, GPIO.HIGH)
                 GPIO.output(15, GPIO.HIGH)
-                threading.Thread(target=self.notify, args=recipients).start()
+                threading.Thread(target=self.notify_email, args=email_recipients).start()
+                for number in sms_recipients:
+                    threading.Thread(target=self.notify_sms, args=['+447507400113']).start()
             if start > 0:
                 if (time.time() - start) >= 1:
                     L.info("Dong!")
@@ -71,10 +75,16 @@ class Doorbell:
             GPIO.shutdown()
         GPIO.cleanup()
 
-    def notify(self, recipients):
+    def notify_sms(self, sms_recipient):
+        sender = 'SeñorDong!'
+        if not "doorbell" in socket.gethostname():
+            sender = socket.gethostname()
+        self.sms.send(sender, sms_recipient, "Doorbell @ " + time.strftime('%l:%M%p'))
+
+    def notify_email(self, email_recipients):
         sender = "Doorbell"
         if not "doorbell" in socket.gethostname():
             sender = socket.gethostname()
-        self.email.send(sender + " <doorbell@ridgway.io>", recipients,
+        self.email.send(sender + " <doorbell@ridgway.io>", email_recipients,
                         "Doorbell @ " + time.strftime('%l:%M%p'),
                         "The doorbell rang at " + time.strftime('%l:%M%p %Z on %b %d, %Y'))
