@@ -38,24 +38,30 @@ class Doorbell:
         GPIO.setup(14, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(15, GPIO.OUT, initial=GPIO.LOW)
 
-        high = False
+        start = 0
+        high = 0
 
         # GPIO.add_event_detect(4, GPIO.BOTH)
         L.info("ready")
 
         while True:
-            if GPIO.input(4) and not high:
+            if GPIO.input(4) and high == 0:
                 L.info("Ding!")
+                start = time.time()
+                high = time.time()
                 GPIO.output(14, GPIO.HIGH)
                 GPIO.output(15, GPIO.HIGH)
                 threading.Thread(target=self.notify, args=recipients).start()
-                high = True
-            elif (not GPIO.input(4)) and high:
-                if high:
+            if start > 0:
+                if (time.time() - start) >= 1:
                     L.info("Dong!")
                     GPIO.output(14, GPIO.LOW)
                     GPIO.output(15, GPIO.LOW)
-                    high = False
+                    start = 0
+            if not GPIO.input(4) and start == 0 and high > 0:
+                if (time.time() - high) >= 5:
+                    L.info("Cooled off, ready to fire again!")
+                    high = 0
             time.sleep(0.05)
 
     def shutdown(self):
@@ -70,5 +76,5 @@ class Doorbell:
         if not "doorbell" in socket.gethostname():
             sender = socket.gethostname()
         self.email.send(sender + " <doorbell@ridgway.io>", recipients,
-                     "Doorbell @ " + time.strftime('%l:%M%p'),
-                     "The doorbell rang at " + time.strftime('%l:%M%p %Z on %b %d, %Y'))
+                        "Doorbell @ " + time.strftime('%l:%M%p'),
+                        "The doorbell rang at " + time.strftime('%l:%M%p %Z on %b %d, %Y'))

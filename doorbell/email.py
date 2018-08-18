@@ -40,3 +40,4 @@ class Email:
 
         response = requests.post(url, auth=auth, data=data)
         response.raise_for_status()
+        logging.info("Send completed")
