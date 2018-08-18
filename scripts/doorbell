@@ -4,6 +4,12 @@ set -e
 #Ensure in scripts directory
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
+
+echo "Activiating venv"
 source bin/activate
 
+echo "Installing requirements"
+pip install -r requirements.txt
+
+echo "Starting service"
 ./bin/python -m doorbell

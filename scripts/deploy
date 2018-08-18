@@ -12,7 +12,7 @@ if [[ $RESULT = *"ERROR"* ]]; then
 fi
 
 echo "Copying files..."
-rsync -ahz --delete --progress --exclude=.idea . doorbell-pi:/srv/doorbell-pi
+rsync -ah --progress --delete --include .git --exclude-from="$(git -C . ls-files --exclude-standard -oi --directory >.git/ignores.tmp && echo .git/ignores.tmp)" . doorbell-pi:/srv/doorbell-pi
 
 echo "Starting service..."
 RESULT=$(ssh doorbell-pi "supervisorctl start doorbell-pi")
