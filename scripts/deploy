@@ -4,7 +4,9 @@ set -e
 #Ensure in scripts directory
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
-HOST=doorbell-pi
+if [[ -z "${HOST}" ]]; then
+    HOST=doorbell-pi
+fi
 
 echo "Host: $HOST"
 
@@ -16,7 +18,7 @@ if [[ $RESULT = *"ERROR"* ]]; then
 fi
 
 echo "Copying files..."
-rsync -ah --progress --delete --include .git --exclude-from="$(git -C . ls-files --exclude-standard -oi --directory >.git/ignores.tmp && echo .git/ignores.tmp)" . $HOST:/srv/doorbell-pi
+rsync -ah --progress --delete --exclude-from="$(git -C . ls-files --exclude-standard -oi --directory >.git/ignores.tmp && echo .git/ignores.tmp)" . $HOST:/srv/doorbell-pi
 
 echo "Starting service..."
 RESULT=$(ssh $HOST "supervisorctl start doorbell-pi")
