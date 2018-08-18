@@ -1,4 +1,5 @@
 from doorbell.OSCheck import ispi
+import logging
 import time
 
 if ispi():
@@ -6,12 +7,17 @@ if ispi():
 else:
     from doorbell.EmulatorGUI import GPIO
 
+L = logging.getLogger('Doorbell')
+
 
 class Doorbell:
 
     def run(self):
-        print("hello!")
-        print(ispi())
+        L.info("run")
+
+        if not ispi():
+            L.info("launching emulator")
+            GPIO.init()
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(4, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -21,25 +27,26 @@ class Doorbell:
 
         high = False
 
-        try:
-          # GPIO.add_event_detect(4, GPIO.BOTH)
-          print("Ready")
+        # GPIO.add_event_detect(4, GPIO.BOTH)
+        L.info("ready")
 
-          while True:
-            if GPIO.input(4):
-              print("Ding! ")
-              GPIO.output(14, GPIO.HIGH)
-              GPIO.output(15, GPIO.HIGH)
-              high = True
-            else:
-              if high:
-                print   ("Dong! ")
-                GPIO.output(14, GPIO.LOW)
-                GPIO.output(15, GPIO.LOW)
-                high = False
-            time.sleep(0.1)
+        while True:
+            if GPIO.input(4) and not high:
+                L.info("Ding!")
+                GPIO.output(14, GPIO.HIGH)
+                GPIO.output(15, GPIO.HIGH)
+                high = True
+            elif (not GPIO.input(4)) and high:
+                if high:
+                    L.info("Dong!")
+                    GPIO.output(14, GPIO.LOW)
+                    GPIO.output(15, GPIO.LOW)
+                    high = False
+            time.sleep(0.05)
 
-        except KeyboardInterrupt:
-          GPIO.cleanup()       # clean up GPIO on CTRL+C exit
-
-        GPIO.cleanup()           # clean up GPIO on normal exit
+    def shutdown(self):
+        L.info("shutdown")
+        if not ispi():
+            L.info("closing emulator")
+            GPIO.shutdown()
+        GPIO.cleanup()
