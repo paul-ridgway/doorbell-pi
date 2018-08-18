@@ -6,10 +6,10 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 
 echo "Activiating venv"
-source bin/activate
+source ~/.venv/doorbell-pi/bin/activate
 
 echo "Installing requirements"
 pip install -r requirements.txt
 
 echo "Starting service"
-./bin/python -m doorbell
+exec python -m doorbell
