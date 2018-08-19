@@ -55,7 +55,7 @@ class Doorbell:
                 GPIO.output(15, GPIO.HIGH)
                 threading.Thread(target=self.notify_email, args=email_recipients).start()
                 for number in sms_recipients:
-                    threading.Thread(target=self.notify_sms, args=['+447507400113']).start()
+                    threading.Thread(target=self.notify_sms, args=[number]).start()
             if start > 0:
                 if (time.time() - start) >= 1:
                     L.info("Dong!")
