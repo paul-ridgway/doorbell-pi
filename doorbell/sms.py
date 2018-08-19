@@ -15,6 +15,7 @@ class Sms:
                 raise KeyError("username is missing from sms.yml")
             if 'password' not in self.settings:
                 raise KeyError("password is missing from sms.yml")
+            logging.info("SMS enabled")
 
     def send(self, sender, recipient, body):
         logging.info("Sms#send, sender = %s, recipient = %s, body = %s", sender, recipient, body)

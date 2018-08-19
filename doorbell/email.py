@@ -14,6 +14,7 @@ class Email:
                 raise KeyError("mailgun_api_key is missing from email.yml")
             if 'mailgun_domain_name' not in self.settings:
                 raise KeyError("mailgun_domain_name is missing from email.yml")
+            logging.info("Email enabled")
 
     def send(self, sender, to, subject, body, html_body=None):
         logging.info("Email#send, sender = %s, to = %s, subject = %s, body = %s", sender, to, subject, body)

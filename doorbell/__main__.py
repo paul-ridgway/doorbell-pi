@@ -57,6 +57,8 @@ if __name__ == "__main__":
 
     # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+    logging.info("Doorbell, version 0.1")
+
     pidfile = "/tmp/doorbell-pi.pid"
     write_pidfile_or_die(pidfile)
     try:
