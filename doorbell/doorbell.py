@@ -53,7 +53,7 @@ class Doorbell:
                 high = time.time()
                 GPIO.output(14, GPIO.HIGH)
                 GPIO.output(15, GPIO.HIGH)
-                threading.Thread(target=self.notify_email, args=email_recipients).start()
+                threading.Thread(target=self.notify_email, args=[email_recipients]).start()
                 for number in sms_recipients:
                     threading.Thread(target=self.notify_sms, args=[number]).start()
             if start > 0:
