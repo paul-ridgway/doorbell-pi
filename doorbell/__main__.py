@@ -1,6 +1,7 @@
 import sys
 import os
 from doorbell import Doorbell
+from doorbell import webserver
 import signal
 import logging
 
@@ -17,6 +18,7 @@ def main(args=None):
     doorbell = Doorbell()
     try:
         signal.signal(signal.SIGINT, lambda sig, frame: shutdown(doorbell))
+        # webserver.WebServer.run()
         doorbell.run()
     except KeyboardInterrupt:
         doorbell.shutdown()
