@@ -1,6 +1,7 @@
 from doorbell.OSCheck import ispi
-from doorbell.email import Email
+from doorbell.mailgun import Mailgun
 from doorbell.sms import Sms
+from doorbell.config import Config
 import logging
 import time
 import threading
@@ -17,23 +18,27 @@ L = logging.getLogger('Doorbell')
 class Doorbell:
 
     def __init__(self):
-        self.email = Email()
+        self.email = Mailgun()
         self.sms = Sms()
+        self.config = Config()
+
+        # TODO: Move to config?
+        self.__email_recipients = ['paul@ridgway.io', 'amanda@ridgway.io']
+        self.__sms_recipients = ['+447507400113', '+447846709005']
+
+        if not "doorbell" in socket.gethostname():
+            L.info("Stubbing email/SMS contacts for non-prod host: %s", socket.gethostname())
+            self.__email_recipients = ['paul@ridgway.io']
+            self.__sms_recipients = ['+447507400113']
 
     def run(self):
         L.info("run")
 
-        email_recipients = ['paul@ridgway.io', 'amanda@ridgway.io']
-        sms_recipients = ['+447507400113', '+447846709005']
 
         if not ispi():
             L.info("launching emulator")
             GPIO.init()
 
-        if not "doorbell" in socket.gethostname():
-            L.info("Stubbing email/SMS contacts for non-prod host: %s", socket.gethostname())
-            email_recipients = ['paul@ridgway.io']
-            sms_recipients = ['+447507400113']
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(4, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
@@ -43,33 +48,66 @@ class Doorbell:
         start = 0
         high = 0
 
-        # GPIO.add_event_detect(4, GPIO.BOTH)
         L.info("ready")
 
         while True:
             if GPIO.input(4) and high == 0:
-                L.info("Ding!")
                 start = time.time()
                 high = time.time()
-                GPIO.output(14, GPIO.HIGH)
-                GPIO.output(15, GPIO.HIGH)
-                threading.Thread(target=self.notify_email, args=[email_recipients]).start()
-                for number in sms_recipients:
-                    threading.Thread(target=self.notify_sms, args=[number]).start()
+                self.ding()
+
             if start > 0:
                 if (time.time() - start) >= 1:
-                    L.info("Dong!")
-                    GPIO.output(14, GPIO.LOW)
-                    GPIO.output(15, GPIO.LOW)
                     start = 0
+                    self.dong()
             if not GPIO.input(4) and start == 0 and high > 0:
                 if (time.time() - high) >= 5:
                     L.info("Cooled off, ready to fire again!")
                     high = 0
             time.sleep(0.05)
 
+    def ding(self):
+        L.info("Ding!")
+
+        self.send_sms()
+        self.send_email()
+
+        if self.config.ring_upstairs:
+            L.info("Ring Upstairs")
+            GPIO.output(14, GPIO.HIGH)
+        else:
+            L.info("Skipping Ring Upstairs due to config")
+
+        if self.config.ring_downstairs:
+            L.info("Ring Downstairs")
+            GPIO.output(15, GPIO.HIGH)
+        else:
+            L.info("Skipping Ring Downstairs due to config")
+
+    def dong(self):
+        L.info("Dong!")
+        GPIO.output(14, GPIO.LOW)
+        GPIO.output(15, GPIO.LOW)
+
+    def send_email(self):
+        # Email
+        if self.config.send_email:
+            L.info("Sending Email...")
+            threading.Thread(target=self.notify_email, args=[self.__email_recipients]).start()
+        else:
+            L.info("Skipping E-Mail due to config")
+
+    def send_sms(self):
+        if self.config.send_sms:
+            L.info("Sending SMS...")
+            for number in self.__sms_recipients:
+                threading.Thread(target=self.notify_sms, args=[number]).start()
+        else:
+            L.info("Skipping SMS due to config")
+
     def shutdown(self):
         L.info("shutdown")
+        self.config.save()
         if not ispi():
             L.info("closing emulator")
             GPIO.shutdown()

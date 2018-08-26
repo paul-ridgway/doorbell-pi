@@ -109,3 +109,4 @@ venv.bak/
 #Project specific
 email.yml
 sms.yml
+config.yml

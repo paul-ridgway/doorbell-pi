@@ -3,3 +3,4 @@ GPIOSimulator==0.1
 requests
 pyyaml
 clx-sdk-xms
+flask

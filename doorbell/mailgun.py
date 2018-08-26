@@ -4,7 +4,7 @@ import yaml
 import os
 
 
-class Email:
+class Mailgun:
 
     def __init__(self):
         self.settings = None
