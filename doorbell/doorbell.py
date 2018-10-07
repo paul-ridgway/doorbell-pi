@@ -114,7 +114,7 @@ class Doorbell:
         GPIO.cleanup()
 
     def notify_sms(self, sms_recipient):
-        sender = 'Doorbell'
+        sender = '166'
         if not "doorbell" in socket.gethostname():
             sender = socket.gethostname()
         self.sms.send(sender, sms_recipient, "Doorbell @ " + time.strftime('%l:%M%p'))
